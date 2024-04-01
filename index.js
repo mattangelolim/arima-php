@@ -9,7 +9,7 @@ const forgot_pw = require("./models/forgot_password");
 const crypto = require("crypto")
 const nodemailer = require("nodemailer")
 const bcrypt = require('bcrypt');
-const saltRounds = 10; 
+const saltRounds = 10;
 
 const app = express()
 app.use(bodyParser.json());
@@ -128,7 +128,7 @@ app.post("/user/forgot", async (req, res) => {
         })
 
         // Send password reset email
-        const resetLink = `http://localhost/maneclick-v.2/frontend/change-pw.php?token=${resetToken}`;
+        const resetLink = `http://localhost/maneclick-v.2/frontend/resetpassword.php?token=${resetToken}`;
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
@@ -169,11 +169,11 @@ app.post("/user/reset-password", async (req, res) => {
             where: {
                 token: resetToken
             },
-            attributes:["email"]
+            attributes: ["email"]
         })
 
-        if(!findUser){
-            return res.status(404).json({message:"User not found"})
+        if (!findUser) {
+            return res.status(404).json({ message: "User not found" })
         }
         const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
@@ -190,6 +190,12 @@ app.post("/user/reset-password", async (req, res) => {
         if (updatedRowCount === 0) {
             return res.status(404).json({ message: "Invalid or expired reset token" });
         }
+
+        await forgot_pw.destroy({
+            where: {
+                token: resetToken
+            }
+        })
 
         res.status(200).json({
             message: "Password reset successful",
