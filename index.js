@@ -37,7 +37,7 @@ const prompts = {
 
 app.get("/api/arima", async (req, res) => {
     try {
-        const { patient_id, p_value, d_value, q_value } = req.body;
+        const { patient_id, p_value, d_value, q_value } = req.query;
         if (!patient_id) {
             return res.status(400).json("Missing patient_id parameter");
         }
