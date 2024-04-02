@@ -84,12 +84,29 @@ app.get("/api/arima", async (req, res) => {
             verbose: false
         };
 
+        // const sarimaConfig = {
+        //     p: p_value,
+        //     d: d_value,
+        //     q: q_value,
+        //     P: 1,
+        //     D: 0,
+        //     Q: 1,
+        //     s: 5,
+        //     verbose: false
+        // };
+
         // Train ARIMA model
         const arimaModel = new ARIMA(arimaConfig);
         arimaModel.train(values);
 
         // Predict the next value
-        const predictedValue = Math.round(arimaModel.predict(1)[0]);
+        let predictedValue = Math.round(arimaModel.predict(1)[0]);
+
+        if (predictedValue > 100) {
+            predictedValue = 100;
+        } else if (predictedValue < 20) {
+            predictedValue = 20;
+        }
 
         // Format response
         const response = {
