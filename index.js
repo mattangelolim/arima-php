@@ -37,7 +37,7 @@ const prompts = {
 
 app.get("/api/arima", async (req, res) => {
     try {
-        const { patient_id, p_value, d_value, q_value } = req.query;
+        const { patient_id, p_value, d_value, q_value, steps } = req.query;
         if (!patient_id) {
             return res.status(400).json("Missing patient_id parameter");
         }
@@ -100,18 +100,22 @@ app.get("/api/arima", async (req, res) => {
         arimaModel.train(values);
 
         // Predict the next value
-        let predictedValue = Math.round(arimaModel.predict(1)[0]);
 
-        if (predictedValue > 100) {
-            predictedValue = 100;
-        } else if (predictedValue < 20) {
-            predictedValue = 20;
-        }
+        let [predictedValues, errors] = arimaModel.predict(steps ?? 1);
+
+        predictedValues.forEach((predictedValue, index) => {
+            predictedValues[index] = Math.round(predictedValue);
+            if (predictedValue > 100) {
+                predictedValues[index] = 100;
+            } else if (predictedValue < 20) {
+                predictedValues[index] = 20;
+            }
+        });
 
         // Format response
         const response = {
             Prompts: averagePrompts,
-            predicted_prompt: predictedValue
+            predicted_prompt: predictedValues
         };
 
         res.json(response);
